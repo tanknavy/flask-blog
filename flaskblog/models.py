@@ -1,6 +1,7 @@
 #from flaskblog import db #一个已经绑定了app的alchemy实例对象，可以操作DB
 # 除了使用__main__这样，最好是使用package来包装相关模块
 #from __main__ import db # 因为引用的是实例对象需要runtime的？其实这时flaskblog.py名字是main了， 注意循环引用circular import
+from flask import current_app # 使用这个替代如下app,当app在使用时才产生
 from flaskblog import db, login_manager, app
 from datetime import datetime
 from flask_login import UserMixin

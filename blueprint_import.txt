@@ -1,0 +1,37 @@
+MVC: model(DB level) -> view(page) -> controller(route)
+# blueprint就是将以前的route和template按照业务类型分开，原本在一个routes和一个forms文件各自分离
+
+# routes.py
+import os
+import secrets
+from PIL import Image
+from flask import Flask, render_template, url_for, flash, redirect, request, abort
+from flaskblog import app, db, bcrypt, mail
+from flaskblog.models import User, Post
+from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, RequestResetForm, ResetPasswordForm # 自定义form,现在从包中的模块中引用
+from flask_login import login_user, current_user, logout_user, login_required
+from flask_mail import Message
+
+
+# forms.py
+from flask_wtf import FlaskForm
+from flask_login import current_user
+from flask_wtf.file import FileField, FileAllowed
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+from flaskblog.models import User
+
+
+###################################################################
+
+# main/routes.py
+
+# users/forms.py
+
+# users/routes.py
+
+
+# posts/forms.py
+
+
+# posts/routes.py
