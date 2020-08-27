@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{%  block content %} <div class="content-section">
+    <!---->
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Reset Password</legend>
+
+            <div class="form-group">
+                {{ form.email.label(class="form-control-label") }}
+                <!--如果表单中栏位检测到错误，高亮输入框-->
+                {% if form.email.errors %}
+                    {{ form.email(class="form-control form-control-lg is-invalid") }}
+                    <div class="invalid-feedback">
+                        <!--循环输出每个错误-->
+                        {% for error in form.email.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                <!--没有错误，正常显示-->
+                {% else %}
+                    {{ form.email(class="form-control form-control-lg") }}
+                {% endif %}
+            </div>
+
+        </fieldset>
+
+        <div class="form-group">
+            {{ form.submit(class="btn btn-outline-info") }}
+        </div>
+
+    </form>
+</div>
+
+{% endblock content %}

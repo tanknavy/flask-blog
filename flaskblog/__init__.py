@@ -1,12 +1,15 @@
 ## __init__.py文件表示这是一个package,里面包含Module,
 ## 包里init文件中可以被外界引用
 
+import os
 from flask import Flask, render_template, url_for, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
 #from flaskblog.forms import RegistrationForm, LoginForm  # 自定义form, 放到最下面，避免循环调用,不需要
 #from models import User, Post #DB，循环引用？
 from flask_bcrypt import Bcrypt #密码加密
 from flask_login import LoginManager # session管理
+from flask_mail import Mail
+
 
 app = Flask(__name__)
 # import secrets
@@ -19,6 +22,14 @@ bcrypt = Bcrypt(app)
 login_manager = LoginManager(app) # login,logout, current_user
 login_manager.login_view = 'login' #当网页必须要登录时，如果没有登录转到登录页面
 login_manager.login_message_category = 'info' #当网页需要登录时而没有登录时的信息级别
+
+# 邮箱
+app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.environ.get('EMAIL_USER')
+app.config['MAIL_PASSWORD'] = os.environ.get('EMAIL_PASS')
+mail = Mail(app)
 
 #from flaskblog.forms import RegistrationForm, LoginForm  # 自定义form，
 

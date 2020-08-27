@@ -1,9 +1,10 @@
 #from flaskblog import db #一个已经绑定了app的alchemy实例对象，可以操作DB
 # 除了使用__main__这样，最好是使用package来包装相关模块
 #from __main__ import db # 因为引用的是实例对象需要runtime的？其实这时flaskblog.py名字是main了， 注意循环引用circular import
-from flaskblog import db, login_manager
+from flaskblog import db, login_manager, app
 from datetime import datetime
 from flask_login import UserMixin
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 # 用户authentication
 @login_manager.user_loader
@@ -23,6 +24,20 @@ class User(db.Model, UserMixin): #多继承，用户验证，UserMinxin用于用
     # one-to-many关系，不是一个db栏位，方便通过该用户查到他全部的post
     # user.posts拿到全部post, post.author拿到用户信息
     posts = db.relationship('Post', backref='author', lazy=True)
+
+    # 加入session/token过期
+    def get_reset_token(self, expires_sec=1800):
+        s = Serializer(app.config['SECRET_KEY'], expires_sec) #传入secret_key，设定1800秒过期
+        return s.dumps({'user_id': self.id}).decode('utf-8')
+
+    @staticmethod #静态方法，工具方法
+    def verify_reset_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            user_id = s.loads(token)['user_id']
+        except:
+            return None #用户token过期
+        return User.query.get(user_id) #没有过期就去查用户名
 
     def __repr__(self): #方便查看
         return f"User('{self.username}', '{self.email}', '{self.image_file}')"

@@ -2,10 +2,11 @@ import os
 import secrets
 from PIL import Image
 from flask import Flask, render_template, url_for, flash, redirect, request, abort
-from flaskblog import app, db, bcrypt
+from flaskblog import app, db, bcrypt, mail
 from flaskblog.models import User, Post
-from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm # 自定义form,现在从包中的模块中引用
+from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, RequestResetForm, ResetPasswordForm # 自定义form,现在从包中的模块中引用
 from flask_login import login_user, current_user, logout_user, login_required
+from flask_mail import Message
 #-----------上述引用全部放到项目同名的包下面的__init__.py文件中
 
 # 为了避免和models的循环引用,因为models中有import db
@@ -230,3 +231,58 @@ def user_posts(username):
     #   {% for post in posts.items %}
     # 使用?page=2
     return render_template('user_posts.html', posts=posts, user=user)
+
+
+def send_reset_email(user):
+    token = user.get_reset_token() # 1800秒过期的token
+    msg = Message('Password Reset Request', sender='noreply@gmail.com', recipients=[user.email])
+    # 重置密码的链接，外部使用
+    msg.body = f'''To reset your password, visit the following link:
+        {url_for('reset_token', token=token, _external=True)}
+        
+        If you did not make this request, please ignore   
+    '''
+    #mail.send(msg) #发送邮件
+
+
+# 先验证邮箱，再重置密码
+@app.route("/reset_password", methods=['GET','POST'])
+def reset_request():
+    # 如果已经登录认证过了，session还有效
+    if current_user.is_authenticated:  # 在User类中继承了UserMixin
+        return redirect(url_for('home'))
+
+    form = RequestResetForm()
+    if form.validate_on_submit():# 开始重置密码
+        user = User.query.filter_by(email=form.email.data).first()
+        # 发送重置密码的邮件
+        send_reset_email(user)
+        flash('An email has benn sent with instructions to reset your password', 'info')
+        return redirect(url_for('login'))
+
+    return render_template('reset_request.html', title='Reset Pasword', form=form)
+
+
+@app.route("/reset_password/<token>", methods=['GET','POST'])
+def reset_token(token):
+    if current_user.is_authenticated:  # 在User类中继承了UserMixin
+        return redirect(url_for('home'))
+
+    user = User.verify_reset_token(token)
+    if user is None: #token无效
+        flash('That is an invalid or expired token', 'warning')
+        return redirect(url_for('reset_request'))
+
+    form = RequestResetForm()
+    if form.validate_on_submit():  # 校验成功后hash密码
+        # 接受表单数据，封装到bean，写入DB
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        #user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+        #db.session.add(user) #更新操作，无需创建记录
+        user.password = hashed_password #要更新的值
+        db.session.commit()
+        flash(f'Your password has been updated {user}!', 'success')  # 快闪信息
+        return redirect(url_for('login'))  # 成功就重定向到主页
+
+    # get方法
+    return render_template('reset_token.html', title='Reset Password', form=form)
