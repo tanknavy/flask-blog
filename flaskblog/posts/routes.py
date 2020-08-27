@@ -7,7 +7,7 @@ from flaskblog import db
 from flaskblog.posts.forms import PostForm
 from flaskblog.models import Post
 
-#蓝图，route和app的集合，延时创建
+#蓝图，route和app的集合，延时创建, 必须在package中
 # 比如这里的@app.route, 现在统一改为posts.route()
 posts = Blueprint('posts', __name__)
 

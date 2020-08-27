@@ -10,6 +10,7 @@ from flask_bcrypt import Bcrypt #密码加密
 from flask_login import LoginManager # session管理
 from flask_mail import Mail
 
+
 from flaskblog.config import Config
 
 app = Flask(__name__)
@@ -52,10 +53,12 @@ mail = Mail(app)
 from flaskblog.main.routes import main
 from flaskblog.users.routes import users
 from flaskblog.posts.routes import posts
+from flaskblog.errors.handler import errors
 
 app.register_blueprint(main)
 app.register_blueprint(users)
 app.register_blueprint(posts)
+app.register_blueprint(errors)
 
 #之前url_for('function')格式，现在全部要改为blueprint格式
 # url_for('home') -> url_for('main.home')
@@ -65,7 +68,7 @@ app.register_blueprint(posts)
 
 # 可以使用如下函数创建app和绑定环境
 # 当前app使用什么配置
-# 暂时没有被调用
+# 暂时没有被调用!!
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(Config)
